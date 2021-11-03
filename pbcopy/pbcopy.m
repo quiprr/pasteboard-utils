@@ -8,6 +8,10 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+// the function used by UIPasteboard to log what type of data was placed in the clipboard
+extern void _NSSetLogCStringFunction(void(*)(const char*, unsigned, BOOL));
+static void noLog(const char* message, unsigned length, BOOL withSysLogBanner) { /* Empty */ }
+
 int main (int argc, char* argv[]) {
     @autoreleasepool {
         if (argc == 2) {
@@ -30,7 +34,11 @@ int main (int argc, char* argv[]) {
         NSData *data = [[NSFileHandle fileHandleWithStandardInput] availableData];
         NSString *dataString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+
+        _NSSetLogCStringFunction(noLog);
         pasteboard.string = dataString;
-        NSLog(@"Data copied to clipboard.");
+        _NSSetLogCStringFunction(NULL);
+
+        printf("Data copied to clipboard.\n");
     }
 }
