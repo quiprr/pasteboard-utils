@@ -1,23 +1,25 @@
-.PHONY: clean all pbupload pbcopy pbpaste
+.PHONY: all install clean
+
+PREFIX ?= /usr
+BINDIR ?= $(PREFIX)/bin
 
 CC     := xcrun --sdk iphoneos clang
-CFLAGS := -O2 -arch arm64 -fobjc-arc -miphoneos-version-min=10.0
+CFLAGS ?= -O2 -arch arm64 -fobjc-arc -miphoneos-version-min=10.0
 LIBS   := -framework Foundation -framework UIKit
 SIGN   := ldid -Sent.plist
 
+SRC  := $(wildcard **/*.m)
+BINS := $(SRC:%.m=%)
+
+all: $(BINS)
+
+%: %.m
+	$(CC) $(CFLAGS) $< -o $@ $(LIBS)
+	$(SIGN) $@
+
+install:
+	install -d $(DESTDIR)$(BINDIR)
+	install -m755 $(BINS) $(DESTDIR)$(BINDIR)
+
 clean:
-	rm -rf bin/
-
-all: pbupload pbcopy pbpaste
-
-pbupload:
-	$(CC) $(CFLAGS) pbupload/pbupload.m -o bin/pbupload $(LIBS)
-	$(SIGN) bin/pbupload
-
-pbcopy:
-	$(CC) $(CFLAGS) pbcopy/pbcopy.m -o bin/pbcopy $(LIBS)
-	$(SIGN) bin/pbcopy
-
-pbpaste:
-	$(CC) $(CFLAGS) pbpaste/pbpaste.m -o bin/pbpaste $(LIBS)
-	$(SIGN) bin/pbpaste
+	rm -rf $(BINS)
